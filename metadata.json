@@ -1,0 +1,6 @@
+{
+  "name": "مقایسه قیمت دو کالا",
+  "description": "اپلیکیشن محاسبه و مقایسه قیمت هر کیلوگرم و ارزش خرید دو کالا بر اساس وزن و قیمت",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
