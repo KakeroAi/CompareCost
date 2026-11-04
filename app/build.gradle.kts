@@ -1,4 +1,44 @@
 import com.google.gms.googleservices.GoogleServicesPlugin.MissingGoogleServicesStrategy
+import java.io.File
+import java.util.Base64
+
+// Ensure debug.keystore exists before signing tasks run
+val rootDirFile = rootDir
+val ensureDebugKeystore = tasks.register("ensureDebugKeystore") {
+  val keystoreFile = File(rootDirFile, "debug.keystore")
+  val b64File = File(rootDirFile, "debug.keystore.base64")
+  doLast {
+    if (!keystoreFile.exists()) {
+      if (b64File.exists()) {
+        try {
+          val bytes = Base64.getDecoder().decode(b64File.readText().replace("\r", "").replace("\n", "").trim())
+          keystoreFile.writeBytes(bytes)
+        } catch (_: Exception) {}
+      }
+      if (!keystoreFile.exists()) {
+        try {
+          ProcessBuilder(
+            "keytool", "-genkeypair", "-v",
+            "-keystore", keystoreFile.absolutePath,
+            "-storepass", "android",
+            "-alias", "androiddebugkey",
+            "-keypass", "android",
+            "-keyalg", "RSA",
+            "-keysize", "2048",
+            "-validity", "10000",
+            "-dname", "CN=Android Debug,O=Android,C=US"
+          ).start().waitFor()
+        } catch (_: Exception) {}
+      }
+    }
+  }
+}
+
+tasks.configureEach {
+  if (name.startsWith("validateSigning") || name.startsWith("package") || name.startsWith("process")) {
+    dependsOn(ensureDebugKeystore)
+  }
+}
 
 plugins {
   alias(libs.plugins.android.application)
